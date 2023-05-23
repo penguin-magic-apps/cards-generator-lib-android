@@ -5,8 +5,15 @@ plugins {
     id 'maven-publish'
 }
 
-group = 'com.github.penguinmagicapps'
-version = '1.0'
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            groupId = 'com.github.penguinmagic'
+            artifactId = 'cardsgeneratorlib'
+            version = '1.0.1'
+        }
+    }
+}
 
 android {
     namespace 'com.penguinmagic.cardsgeneratorlib'
@@ -15,8 +22,8 @@ android {
     defaultConfig {
         minSdk 21
         targetSdk 33
-        versionCode 1
-        versionName "1.0"
+        versionCode 2
+        versionName "1.0.1"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
