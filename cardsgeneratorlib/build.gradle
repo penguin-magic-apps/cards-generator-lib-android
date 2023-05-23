@@ -5,8 +5,10 @@ plugins {
     id 'maven-publish'
 }
 
+def VERSION_NAME = "1.0.1"
+
 group = 'com.penguin-magic-apps.cards-generator-lib-android'
-version = '1.0.0'
+version = VERSION_NAME
 
 android {
     compileSdk 33
@@ -15,7 +17,7 @@ android {
         minSdk 21
         targetSdk 33
         versionCode 1
-        versionName "1.0.0"
+        versionName VERSION_NAME
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -52,7 +54,7 @@ afterEvaluate {
                 from components.release
                 groupId = 'com.github.penguin-magic-apps'
                 artifactId = 'cards-generator-lib-android'
-                version = '1.0.0'
+                version = VERSION_NAME
             }
         }
     }
