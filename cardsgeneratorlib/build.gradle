@@ -10,7 +10,6 @@ android {
     compileSdk 33
 
     defaultConfig {
-        applicationId "com.penguinmagic.cardsgeneratorlib"
         minSdk 21
         targetSdk 33
         versionCode 1
