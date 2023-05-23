@@ -5,6 +5,9 @@ plugins {
     id 'maven-publish'
 }
 
+group = 'com.github.penguinmagicapps'
+version = '1.0'
+
 android {
     namespace 'com.penguinmagic.cardsgeneratorlib'
     compileSdk 33
