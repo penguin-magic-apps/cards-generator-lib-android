@@ -12,9 +12,7 @@ import com.penguinmagic.cardsgeneratorlib.R
 import com.penguinmagic.cardsgeneratorlib.db.backgrounds.BackgroundsRepository
 import com.penguinmagic.cardsgeneratorlib.model.cards.CardsSuitEnum
 import com.penguinmagic.cardsgeneratorlib.utils.ViewUtils
-import kotlinx.android.synthetic.main.photo_layout.view.clCards
-import kotlinx.android.synthetic.main.photo_layout.view.ivBackground
-import kotlinx.android.synthetic.main.photo_layout.view.rlRoot
+import kotlinx.android.synthetic.main.photo_layout.view.*
 import java.lang.Exception
 import kotlin.math.cos
 import kotlin.math.sin
@@ -56,22 +54,22 @@ class CardsGenerator(private val context: Context) {
     }
 
     private fun setCardsPositionAndSuit() {
-        this.cardsPositions?.let { positions ->
-            positions.forEachIndexed { index, position ->
-                if (position <= 52) {
-                    val materialCard = photoLayout.clCards.getChildAt(position-1) as MaterialCardView
-                    calculateCardTranslationAndTranslate(materialCard)
-                    if (this.cardsOnDeck == true) {
-                        materialCard.elevation = 5F
-                    }
-                    try {
-                        setCardSuit(materialCard.getChildAt(0), this.cardsSuit?.get(index)?.card?.picture)
-                    } catch (ex: Exception) {
-                        Log.e("CardsGenerator", "$ex")
-                    }
-                }
-            }
-        }
+//        this.cardsPositions?.let { positions ->
+//            positions.forEachIndexed { index, position ->
+//                if (position <= 52) {
+//                    val materialCard = photoLayout.clCards.getChildAt(position-1) as MaterialCardView
+//                    calculateCardTranslationAndTranslate(materialCard)
+//                    if (this.cardsOnDeck == true) {
+//                        materialCard.elevation = 5F
+//                    }
+//                    try {
+//                        setCardSuit(materialCard.getChildAt(0), this.cardsSuit?.get(index)?.card?.picture)
+//                    } catch (ex: Exception) {
+//                        Log.e("CardsGenerator", "$ex")
+//                    }
+//                }
+//            }
+//        }
     }
 
     private fun setCardSuit(cardView: View, suit: Int?) {
