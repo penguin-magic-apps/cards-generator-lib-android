@@ -50,10 +50,9 @@ class CardsGenerator(private val context: Context) {
 
     fun getCardsPhotoBitmap(): Bitmap {
         setCardsPositionAndSuit()
-        photoLayout.rlRoot.layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
+        photoLayout.rlRoot.layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT)
         photoLayout.requestLayout()
-        val displayMetrics = context.resources.displayMetrics
-        return ViewUtils.createDrawableFromView(context, photoLayout.rlRoot, displayMetrics.widthPixels, displayMetrics.heightPixels)
+        return ViewUtils.createDrawableFromView(context, photoLayout.rlRoot, 1134, 2016)
     }
 
     private fun setCardsPositionAndSuit() {
