@@ -7,14 +7,13 @@ import android.view.LayoutInflater
 import android.view.View
 import android.widget.FrameLayout
 import android.widget.ImageView
+import androidx.constraintlayout.widget.ConstraintLayout
 import com.google.android.material.card.MaterialCardView
 import com.penguinmagic.cardsgeneratorlib.R
 import com.penguinmagic.cardsgeneratorlib.db.backgrounds.BackgroundsRepository
 import com.penguinmagic.cardsgeneratorlib.model.cards.CardsSuitEnum
 import com.penguinmagic.cardsgeneratorlib.utils.ViewUtils
-import kotlinx.android.synthetic.main.photo_layout.view.clCards
-import kotlinx.android.synthetic.main.photo_layout.view.ivBackground
-import kotlinx.android.synthetic.main.photo_layout.view.rlRoot
+import kotlinx.android.synthetic.main.photo_layout.view.*
 import java.lang.Exception
 import kotlin.math.cos
 import kotlin.math.sin
@@ -24,7 +23,7 @@ class CardsGenerator(private val context: Context) {
     private val photoLayout: View by lazy { LayoutInflater.from(this.context).inflate(R.layout.photo_layout, null, false) }
 
     private var cardsSuit: List<CardsSuitEnum>? = null
-    private var cardsPositions: List<Int>? = null
+    private var cardsPositions = ArrayList<Int>()
     private var cardsOnDeck: Boolean? = null
 
 
@@ -33,7 +32,8 @@ class CardsGenerator(private val context: Context) {
     }
 
     fun chooseCardsPositions(positions: List<Int>) {
-        this.cardsPositions = positions
+        this.cardsPositions.clear()
+        this.cardsPositions.addAll(positions)
     }
 
     fun setCardsOnDeck(boolean: Boolean) {
@@ -50,14 +50,46 @@ class CardsGenerator(private val context: Context) {
 
     fun getCardsPhotoBitmap(): Bitmap {
         setCardsPositionAndSuit()
-        photoLayout.rlRoot.layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
+        photoLayout.rlRoot.layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT)
+
+        val center = View(context)
+        center.layoutParams = ConstraintLayout.LayoutParams(1, 1).apply {
+            this.topToTop = photoLayout.clMainLayout.id
+            this.startToStart = photoLayout.clMainLayout.id
+            this.endToEnd = photoLayout.clMainLayout.id
+            this.bottomToBottom = photoLayout.clMainLayout.id
+        }
+
+        photoLayout.clMainLayout.addView(center)
+
+       for (i in 1..52) {
+
+           if (cardsPositions.contains(i)) {
+
+           }
+           val mcv = MaterialCardView(context)
+           mcv.id = i
+           mcv.rotation = -13 + i * 3f
+           center.layoutParams = ConstraintLayout.LayoutParams(ConstraintLayout.LayoutParams.WRAP_CONTENT, ConstraintLayout.LayoutParams.WRAP_CONTENT).apply {
+               this.topToTop = center.id
+               this.startToStart = center.id
+               this.endToEnd = center.id
+               this.bottomToBottom = center.id
+           }
+
+           val imageView = ImageView(context)
+
+           mcv.addView(imageView)
+
+           photoLayout.clMainLayout.addView(mcv)
+       }
+
         photoLayout.requestLayout()
-        val displayMetrics = context.resources.displayMetrics
-        return ViewUtils.createDrawableFromView(context, photoLayout.rlRoot, displayMetrics.widthPixels, displayMetrics.heightPixels)
+        return ViewUtils.createDrawableFromView(context, photoLayout.rlRoot, 1134, 2016)
     }
 
     private fun setCardsPositionAndSuit() {
-        this.cardsPositions?.let { positions ->
+        this.cardsPositions.let { positions ->
             positions.forEachIndexed { index, position ->
                 if (position <= 52) {
                     val materialCard = photoLayout.clCards.getChildAt(position-1) as MaterialCardView
