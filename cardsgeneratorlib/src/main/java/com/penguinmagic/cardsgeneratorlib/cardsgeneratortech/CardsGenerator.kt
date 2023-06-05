@@ -2,127 +2,124 @@ package com.penguinmagic.cardsgeneratorlib.cardsgeneratortech
 
 import android.content.Context
 import android.graphics.Bitmap
-import android.util.Log
+import android.view.ContextThemeWrapper
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.FrameLayout
-import android.widget.ImageView
+import androidx.appcompat.widget.AppCompatImageView
 import androidx.constraintlayout.widget.ConstraintLayout
 import com.google.android.material.card.MaterialCardView
 import com.penguinmagic.cardsgeneratorlib.R
 import com.penguinmagic.cardsgeneratorlib.db.backgrounds.BackgroundsRepository
-import com.penguinmagic.cardsgeneratorlib.model.cards.CardsSuitEnum
+import com.penguinmagic.cardsgeneratorlib.model.cards.Card
 import com.penguinmagic.cardsgeneratorlib.utils.ViewUtils
 import kotlinx.android.synthetic.main.photo_layout.view.*
-import java.lang.Exception
+import java.io.Serializable
 import kotlin.math.cos
 import kotlin.math.sin
+import kotlin.random.Random
 
 class CardsGenerator(private val context: Context) {
 
     private val photoLayout: View by lazy { LayoutInflater.from(this.context).inflate(R.layout.photo_layout, null, false) }
 
-    private var cardsSuit: List<CardsSuitEnum>? = null
-    private var cardsPositions = ArrayList<Int>()
-    private var cardsOnDeck: Boolean? = null
+    private fun addCardsOnLayout(cards: List<Card>) {
+        for (i in 1..52) {
+            val mcv = MaterialCardView(context)
+            mcv.id = i
+            mcv.layoutParams = ConstraintLayout.LayoutParams(
+                178,
+                250).apply {
+                this.topToTop = photoLayout.clCards.id
+                this.startToStart = photoLayout.clCards.id
+                this.endToEnd = photoLayout.clCards.id
+                this.bottomToBottom = photoLayout.clCards.id
+            }
+            mcv.rotation = randomRotation(i)
+            setRandomPosition(mcv, i)
 
+            val imageView = AppCompatImageView(ContextThemeWrapper(context, R.style.CardBack))
+            mcv.addView(imageView)
 
-    fun chooseCardSuit(cardsSuit: List<CardsSuitEnum>) {
-        this.cardsSuit = cardsSuit
-    }
-
-    fun chooseCardsPositions(positions: List<Int>) {
-        this.cardsPositions.clear()
-        this.cardsPositions.addAll(positions)
-    }
-
-    fun setCardsOnDeck(boolean: Boolean) {
-        this.cardsOnDeck = boolean
-    }
-
-    fun setBackground(background: Int?) {
-        if (background != null) {
-            photoLayout.ivBackground.setImageResource(background)
-        } else {
-            photoLayout.ivBackground.setImageResource(BackgroundsRepository.getRandomBackground())
-        }
-    }
-
-    fun getCardsPhotoBitmap(): Bitmap {
-        setCardsPositionAndSuit()
-        photoLayout.rlRoot.layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT)
-
-        val center = View(context)
-        center.layoutParams = ConstraintLayout.LayoutParams(1, 1).apply {
-            this.topToTop = photoLayout.clMainLayout.id
-            this.startToStart = photoLayout.clMainLayout.id
-            this.endToEnd = photoLayout.clMainLayout.id
-            this.bottomToBottom = photoLayout.clMainLayout.id
-        }
-
-        photoLayout.clMainLayout.addView(center)
-
-       for (i in 1..52) {
-
-           if (cardsPositions.contains(i)) {
-
-           }
-           val mcv = MaterialCardView(context)
-           mcv.id = i
-           mcv.rotation = -13 + i * 3f
-           center.layoutParams = ConstraintLayout.LayoutParams(ConstraintLayout.LayoutParams.WRAP_CONTENT, ConstraintLayout.LayoutParams.WRAP_CONTENT).apply {
-               this.topToTop = center.id
-               this.startToStart = center.id
-               this.endToEnd = center.id
-               this.bottomToBottom = center.id
-           }
-
-           val imageView = ImageView(context)
-
-           mcv.addView(imageView)
-
-           photoLayout.clMainLayout.addView(mcv)
-       }
-
-        photoLayout.requestLayout()
-        return ViewUtils.createDrawableFromView(context, photoLayout.rlRoot, 1134, 2016)
-    }
-
-    private fun setCardsPositionAndSuit() {
-        this.cardsPositions.let { positions ->
-            positions.forEachIndexed { index, position ->
-                if (position <= 52) {
-                    val materialCard = photoLayout.clCards.getChildAt(position-1) as MaterialCardView
-                    calculateCardTranslationAndTranslate(materialCard)
-                    if (this.cardsOnDeck == true) {
-                        materialCard.elevation = 5F
-                    }
-                    try {
-                        setCardSuit(materialCard.getChildAt(0), this.cardsSuit?.get(index)?.card?.picture)
-                    } catch (ex: Exception) {
-                        Log.e("CardsGenerator", "$ex")
-                    }
+            for (card in cards) {
+                if (card.position == i) {
+                    calculateCardTranslationAndTranslate(mcv, i)
+                    imageView.setImageResource(card.picture)
                 }
             }
+
+            photoLayout.clMainLayout.addView(mcv)
         }
     }
 
-    private fun setCardSuit(cardView: View, suit: Int?) {
-        suit?.let { (cardView as ImageView).setImageResource(it) }
-    }
-
-    private fun calculateCardTranslationAndTranslate(cardView: MaterialCardView) {
+    private fun setRandomPosition(cardView: MaterialCardView, index: Int) {
         val pi = 3.14F
         val rotationCard = cardView.rotation
         val radian = rotationCard * pi/180
-        val x = -40 * cos(radian)
-        val y = 60 * sin(radian)
+        var x = (-170 + index * 2) * cos(radian)
+        var y = (150 - index) * sin(radian)
+
+        x += Random.nextDouble(1.0, 5.0).toFloat()
+        y += Random.nextDouble(1.0, 8.0).toFloat()
+
+        translateCard(x, y, cardView)
+    }
+
+    private fun randomRotation(index: Int): Float {
+        var rotationDegrees = index.toDouble() * 5.60
+        rotationDegrees -= 15.0
+        rotationDegrees += Random.nextDouble(1.0, 2.2)
+
+        return rotationDegrees.toFloat()
+    }
+
+    private fun calculateCardTranslationAndTranslate(cardView: MaterialCardView, index: Int) {
+        val pi = 3.14F
+        val rotationCard = cardView.rotation
+        val radian = rotationCard * pi/180
+        val x = (-220 + index * 2) * cos(radian)
+        val y = (200 - index) * sin(radian)
+
         translateCard(x, y, cardView)
     }
 
     private fun translateCard(x: Float, y: Float, view: View) {
         view.translationY = ViewUtils.dpToPx(x, context)
         view.translationX = ViewUtils.dpToPx(y, context)
+    }
+
+    inner class Builder() {
+
+        private val params = Params()
+
+        fun setCardsOnDeck(boolean: Boolean) {
+            this.params.cardsOnDeck = boolean
+        }
+
+        fun setBackground(background: Int?) {
+            if (background != null) {
+                photoLayout.ivBackground.setImageResource(background)
+            } else {
+                photoLayout.ivBackground.setImageResource(BackgroundsRepository.getRandomBackground())
+            }
+        }
+
+        fun getCardsPhotoBitmap(cards: List<Card>): Bitmap {
+            photoLayout.rlRoot.layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT)
+
+            addCardsOnLayout(cards)
+
+            photoLayout.requestLayout()
+
+            return ViewUtils.createDrawableFromView(context, photoLayout.rlRoot, 1134, 2016)
+        }
+
+    }
+
+    private class Params : Serializable {
+
+        var cardsOnDeck: Boolean? = null
+
     }
 
 }
