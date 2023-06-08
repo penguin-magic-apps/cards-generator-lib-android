@@ -27,22 +27,15 @@ class CardsGenerator(private val context: Context) {
         for (i in 1..52) {
             val mcv = MaterialCardView(context)
             mcv.id = i
-            if (width == null || height == null) {
-                mcv.layoutParams = ConstraintLayout.LayoutParams(178, 250).apply {
-                    this.topToTop = photoLayout.clCards.id
-                    this.startToStart = photoLayout.clCards.id
-                    this.endToEnd = photoLayout.clCards.id
-                    this.bottomToBottom = photoLayout.clCards.id
-                }
-            } else {
-                mcv.layoutParams = ConstraintLayout.LayoutParams(width, height).apply {
-                    this.topToTop = photoLayout.clCards.id
-                    this.startToStart = photoLayout.clCards.id
-                    this.endToEnd = photoLayout.clCards.id
-                    this.bottomToBottom = photoLayout.clCards.id
-                }
+            mcv.layoutParams = ConstraintLayout.LayoutParams(
+                width ?: 178,
+                height ?: 250
+            ).apply {
+                this.topToTop = photoLayout.clCards.id
+                this.startToStart = photoLayout.clCards.id
+                this.endToEnd = photoLayout.clCards.id
+                this.bottomToBottom = photoLayout.clCards.id
             }
-
             mcv.cardElevation = cardElevation
             mcv.rotation = randomRotation(i)
             setRandomPosition(mcv, i)
