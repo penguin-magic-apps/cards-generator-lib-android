@@ -23,19 +23,19 @@ class CardsGenerator(private val context: Context) {
 
     private val photoLayout: View by lazy { LayoutInflater.from(this.context).inflate(R.layout.photo_layout, null, false) }
 
-    private fun addCardsOnLayout(cards: List<Card>, cardElevation: Float, width: Int?, height: Int?) {
+    private fun addCardsOnLayout(cards: List<Card>, cardElevation: Float, cardScaleX: Float, cardScaleY: Float) {
         for (i in 1..52) {
             val mcv = MaterialCardView(context)
             mcv.id = i
-            mcv.layoutParams = ConstraintLayout.LayoutParams(
-                width ?: 178,
-                height ?: 250
-            ).apply {
+            mcv.layoutParams = ConstraintLayout.LayoutParams(178, 250).apply {
                 this.topToTop = photoLayout.clCards.id
                 this.startToStart = photoLayout.clCards.id
                 this.endToEnd = photoLayout.clCards.id
                 this.bottomToBottom = photoLayout.clCards.id
             }
+
+            mcv.scaleX = cardScaleX
+            mcv.scaleY = cardScaleY
             mcv.cardElevation = cardElevation
             mcv.rotation = randomRotation(i)
             setRandomPosition(mcv, i)
@@ -102,9 +102,9 @@ class CardsGenerator(private val context: Context) {
             this.params.cardsOnDeck = boolean
         }
 
-        fun setCustomCardsScale(cardWight: Int, cardHeight: Int) {
-            this.params.cardWight = cardWight
-            this.params.cardHeight = cardHeight
+        fun setCustomCardsScale(cardScaleX: Float, cardScaleY: Float) {
+            this.params.cardScaleX = cardScaleX
+            this.params.cardScaleY = cardScaleY
         }
 
         fun setBackground(background: Int?) {
@@ -118,11 +118,7 @@ class CardsGenerator(private val context: Context) {
         fun getCardsPhotoBitmap(cards: List<Card>): Bitmap {
             photoLayout.rlRoot.layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT)
 
-            if (this.params.cardWight == null || this.params.cardHeight == null) {
-                addCardsOnLayout(cards, this.params.cardElevation, null, null)
-            } else {
-                addCardsOnLayout(cards, this.params.cardElevation, this.params.cardWight, this.params.cardHeight)
-            }
+            addCardsOnLayout(cards, this.params.cardElevation, this.params.cardScaleX, this.params.cardScaleY)
 
             photoLayout.requestLayout()
 
@@ -132,13 +128,10 @@ class CardsGenerator(private val context: Context) {
     }
 
     private class Params : Serializable {
-
         var cardsOnDeck: Boolean? = null
         var cardElevation: Float = 0F
-        var cardWight: Int? = null
-        var cardHeight: Int? = null
-
-
+        var cardScaleX: Float = 1F
+        var cardScaleY: Float = 1F
     }
 
 }
