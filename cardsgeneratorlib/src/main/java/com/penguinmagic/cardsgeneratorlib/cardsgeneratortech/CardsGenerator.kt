@@ -23,7 +23,7 @@ class CardsGenerator(private val context: Context) {
 
     private val photoLayout: View by lazy { LayoutInflater.from(this.context).inflate(R.layout.photo_layout, null, false) }
 
-    private fun addCardsOnLayout(cards: List<Card>, cardElevation: Float, cardScaleX: Float, cardScaleY: Float) {
+    private fun addCardsOnLayout(cards: List<Card>, cardElevation: Float, cardScaleX: Float, cardScaleY: Float, translationX: Float, translationY: Float) {
         for (i in 1..52) {
             val mcv = MaterialCardView(context)
             mcv.id = i
@@ -50,7 +50,10 @@ class CardsGenerator(private val context: Context) {
                 }
             }
 
-            photoLayout.clMainLayout.addView(mcv)
+            photoLayout.clCards.translationX = translationX
+            photoLayout.clCards.translationY = translationY
+
+            photoLayout.clCards.addView(mcv)
         }
     }
 
@@ -107,6 +110,11 @@ class CardsGenerator(private val context: Context) {
             this.params.cardScaleY = cardScaleY
         }
 
+        fun setTranslation(translationX: Float, translationY: Float) {
+            this.params.translationX = translationX
+            this.params.translationY = translationY
+        }
+
         fun setBackground(background: Int?) {
             if (background != null) {
                 photoLayout.ivBackground.setImageResource(background)
@@ -118,7 +126,7 @@ class CardsGenerator(private val context: Context) {
         fun getCardsPhotoBitmap(cards: List<Card>): Bitmap {
             photoLayout.rlRoot.layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT)
 
-            addCardsOnLayout(cards, this.params.cardElevation, this.params.cardScaleX, this.params.cardScaleY)
+            addCardsOnLayout(cards, this.params.cardElevation, this.params.cardScaleX, this.params.cardScaleY, this.params.translationX, this.params.translationY)
 
             photoLayout.requestLayout()
 
@@ -132,6 +140,8 @@ class CardsGenerator(private val context: Context) {
         var cardElevation: Float = 0F
         var cardScaleX: Float = 1F
         var cardScaleY: Float = 1F
+        var translationX: Float = -70F
+        var translationY: Float = 350F
     }
 
 }
