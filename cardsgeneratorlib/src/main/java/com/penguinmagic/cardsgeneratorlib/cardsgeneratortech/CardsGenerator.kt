@@ -6,6 +6,7 @@ import android.view.ContextThemeWrapper
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.FrameLayout
+import android.widget.RelativeLayout
 import androidx.appcompat.widget.AppCompatImageView
 import androidx.constraintlayout.widget.ConstraintLayout
 import com.google.android.material.card.MaterialCardView
@@ -165,7 +166,17 @@ class CardsGenerator(private val context: Context) {
 
             photoLayout.requestLayout()
 
-            return ViewUtils.createDrawableFromView(context, photoLayout.rlRoot, 1134, 2016)
+            val rlRoot = photoLayout.findViewById<RelativeLayout>(R.id.rlRoot)
+            rlRoot.measure(
+                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
+                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
+            )
+            rlRoot.layout(0, 0, rlRoot.measuredWidth, rlRoot.measuredHeight)
+
+            val bitmapWidth = rlRoot.measuredWidth
+            val bitmapHeight = rlRoot.measuredHeight
+
+            return ViewUtils.createDrawableFromView(context, photoLayout, bitmapWidth, bitmapHeight)
         }
 
     }
