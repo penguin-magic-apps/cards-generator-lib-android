@@ -27,8 +27,7 @@ class CardsGenerator(private val context: Context) {
     private fun addCardsOnLayout(
         cards: List<Card>,
         cardElevation: Float,
-        cardScaleX: Float,
-        cardScaleY: Float,
+        cardScale: Float,
         translationX: Float,
         translationY: Float,
         cardsOnDeck: Boolean
@@ -36,19 +35,19 @@ class CardsGenerator(private val context: Context) {
         for (i in 1..52) {
             val mcv = MaterialCardView(context)
             setupCardView(mcv, i)
-            applyCardScale(mcv, cardScaleX, cardScaleY)
+            applyCardScale(mcv, cardScale)
 
             mcv.cardElevation = cardElevation
             mcv.rotation = randomRotation(i)
 
-            setRandomPosition(mcv, i)
+            setRandomPosition(mcv, i, cardScale)
 
             val imageView = AppCompatImageView(ContextThemeWrapper(context, R.style.CardBack))
             mcv.addView(imageView)
 
             for (card in cards) {
                 if (card.position == i) {
-                    calculateCardTranslationAndTranslate(mcv, i)
+                    calculateCardTranslationAndTranslate(mcv, i, cardScale)
                     imageView.setImageResource(card.picture)
                     setCardsElevation(cardsOnDeck, mcv)
                 }
@@ -70,9 +69,9 @@ class CardsGenerator(private val context: Context) {
         }
     }
 
-    private fun applyCardScale(mcv: MaterialCardView, cardScaleX: Float, cardScaleY: Float) {
-        mcv.scaleX = cardScaleX
-        mcv.scaleY = cardScaleY
+    private fun applyCardScale(mcv: MaterialCardView, cardScale: Float) {
+        mcv.scaleX = cardScale
+        mcv.scaleY = cardScale
     }
 
     private fun setCardsElevation(cardsOnDeck: Boolean, mcv: MaterialCardView) {
@@ -86,7 +85,7 @@ class CardsGenerator(private val context: Context) {
         photoLayout.clCards.translationY = translationY
     }
 
-    private fun setRandomPosition(cardView: MaterialCardView, index: Int) {
+    private fun setRandomPosition(cardView: MaterialCardView, index: Int, cardScale: Float) {
         val pi = 3.14F
         val rotationCard = cardView.rotation
         val radian = rotationCard * pi/180
@@ -96,7 +95,9 @@ class CardsGenerator(private val context: Context) {
         x += Random.nextDouble(1.0, 5.0).toFloat()
         y += Random.nextDouble(1.0, 8.0).toFloat()
 
-        translateCard(x, y, cardView)
+        if (cardScale != 1.0f) {
+            translateCardsWithScale(x, y, cardView, cardScale)
+        } else translateCard(x, y, cardView)
     }
 
     private fun randomRotation(index: Int): Float {
@@ -107,19 +108,26 @@ class CardsGenerator(private val context: Context) {
         return rotationDegrees.toFloat()
     }
 
-    private fun calculateCardTranslationAndTranslate(cardView: MaterialCardView, index: Int) {
+    private fun calculateCardTranslationAndTranslate(cardView: MaterialCardView, index: Int, cardScale: Float) {
         val pi = 3.14F
         val rotationCard = cardView.rotation
         val radian = rotationCard * pi/180
         val x = (-220 + index * 2) * cos(radian)
         val y = (200 - index) * sin(radian)
 
-        translateCard(x, y, cardView)
+        if (cardScale != 1.0f) {
+            translateCardsWithScale(x, y, cardView, cardScale)
+        } else translateCard(x, y, cardView)
     }
 
     private fun translateCard(x: Float, y: Float, view: View) {
         view.translationY = ViewUtils.dpToPx(x, context)
         view.translationX = ViewUtils.dpToPx(y, context)
+    }
+
+    private fun translateCardsWithScale(x: Float, y: Float, view: View, scale: Float) {
+        view.translationY = ViewUtils.dpToPx(x, context) * scale
+        view.translationX = ViewUtils.dpToPx(y, context) * scale
     }
 
     inner class Builder {
@@ -133,9 +141,8 @@ class CardsGenerator(private val context: Context) {
             this.params.cardsOnDeck = boolean
         }
 
-        fun setCustomCardsScale(cardScaleX: Float, cardScaleY: Float) {
-            this.params.cardScaleX = cardScaleX
-            this.params.cardScaleY = cardScaleY
+        fun setCustomCardsScale(cardScale: Float) {
+            this.params.cardScale = cardScale
         }
 
         fun setTranslation(translationX: Float, translationY: Float) {
@@ -157,8 +164,7 @@ class CardsGenerator(private val context: Context) {
             addCardsOnLayout(
                 cards,
                 this.params.cardElevation,
-                this.params.cardScaleX,
-                this.params.cardScaleY,
+                this.params.cardScale,
                 this.params.translationX,
                 this.params.translationY,
                 this.params.cardsOnDeck
@@ -184,8 +190,7 @@ class CardsGenerator(private val context: Context) {
     private class Params : Serializable {
         var cardsOnDeck: Boolean = false
         var cardElevation: Float = 0F
-        var cardScaleX: Float = 1F
-        var cardScaleY: Float = 1F
+        var cardScale: Float = 1F
         var translationX: Float = -70F
         var translationY: Float = 350F
     }
