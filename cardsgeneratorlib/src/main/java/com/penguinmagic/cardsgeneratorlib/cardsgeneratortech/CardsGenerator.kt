@@ -5,6 +5,7 @@ import android.graphics.Bitmap
 import android.view.ContextThemeWrapper
 import android.view.LayoutInflater
 import android.view.View
+import android.view.animation.LinearInterpolator
 import android.widget.FrameLayout
 import android.widget.RelativeLayout
 import androidx.appcompat.widget.AppCompatImageView
@@ -17,10 +18,16 @@ import com.penguinmagic.cardsgeneratorlib.utils.ViewUtils
 import kotlinx.android.synthetic.main.photo_layout.view.*
 import java.io.Serializable
 import kotlin.math.cos
+import kotlin.math.pow
 import kotlin.math.sin
 import kotlin.random.Random
 
 class CardsGenerator(private val context: Context) {
+
+    companion object {
+        private const val CARD_WIDTH = 356
+        private const val CARD_OVERLAP = CARD_WIDTH * 0.15
+    }
 
     private val photoLayout: View by lazy { LayoutInflater.from(this.context).inflate(R.layout.photo_layout, null, false) }
 
@@ -33,16 +40,10 @@ class CardsGenerator(private val context: Context) {
         cardsOnDeck: Boolean,
         rotation: Float
     ) {
-
-        val cardWidth = 178 * cardScale
-        val cardOverlap = cardWidth * 0.5
-
-        var yOffset = 0f
-
         for (i in 1..52) {
             val mcv = MaterialCardView(context)
             setupCardView(mcv, i)
-            applyCardScale(mcv, cardScale)
+            applyCardScale(mcv)
 
             mcv.cardElevation = cardElevation
             mcv.rotation = randomRotation(i)
@@ -52,29 +53,21 @@ class CardsGenerator(private val context: Context) {
             val imageView = AppCompatImageView(ContextThemeWrapper(context, R.style.CardBack))
             mcv.addView(imageView)
 
-            for (card in cards) {
-                if (card.position == i) {
-                    //calculateCardTranslationAndTranslate(mcv, i, cardScale)
-                    imageView.setImageResource(card.picture)
-                    setCardsElevation(cardsOnDeck, mcv)
-                }
-            }
-
             //applyCardsTranslation(translationX, translationY)
             //applyCardsRotation(rotation)
 
             val layoutParams = mcv.layoutParams as ConstraintLayout.LayoutParams
-            layoutParams.marginStart = (i - 1) * cardOverlap.toInt()
 
-            mcv.x = -1350f
+            val x = -1350f + (i - 1) * CARD_OVERLAP.toInt()
+            mcv.x = x
+            mcv.y = ((-0.00045f * (52 * (26 - x) - (26 - x).pow(2))) + (Random.nextFloat() * 15)) -500
 
-            val yOffsetFactor = Random.nextInt(30, 32)
-            if (i <= 26) {
-                mcv.y = -yOffset * yOffsetFactor
-                yOffset++
-            } else {
-                mcv.y = (yOffset - 50) * yOffsetFactor
-                yOffset++
+            for (card in cards) {
+                if (card.position == i) {
+                    calculateCardTranslationAndTranslate(mcv, i)
+                    imageView.setImageResource(card.picture)
+                    setCardsElevation(cardsOnDeck, mcv)
+                }
             }
 
             mcv.layoutParams = layoutParams
@@ -93,9 +86,9 @@ class CardsGenerator(private val context: Context) {
         }
     }
 
-    private fun applyCardScale(mcv: MaterialCardView, cardScale: Float) {
-        mcv.scaleX = cardScale
-        mcv.scaleY = cardScale
+    private fun applyCardScale(mcv: MaterialCardView) {
+        mcv.scaleX = 2f
+        mcv.scaleY = 2f
     }
 
     private fun setCardsElevation(cardsOnDeck: Boolean, mcv: MaterialCardView) {
@@ -127,26 +120,27 @@ class CardsGenerator(private val context: Context) {
 //    }
 
     private fun randomRotation(index: Int): Float {
-        var rotationDegrees = index.toDouble() * 1.3
-        rotationDegrees -= 15.0
+        var rotationDegrees = index.toDouble() * 1.2
+        rotationDegrees -= 45.0
         rotationDegrees += Random.nextDouble(1.0, 2.2)
 
         return rotationDegrees.toFloat()
     }
 
-//    private fun calculateCardTranslationAndTranslate(cardView: MaterialCardView, index: Int, cardScale: Float) {
-//        val pi = 3.14F
-//        val rotationCard = cardView.rotation
-//        val radian = rotationCard * pi/180
-//        val x = (-220 + index * 2) * cos(radian)
-//        val y = (200 - index) * sin(radian)
-//
-//        translateCard(x, y, cardView, cardScale)
-//    }
+    private fun calculateCardTranslationAndTranslate(mcv: MaterialCardView, index: Int) {
+        val pi = 3.14F
+        val rotationCard = mcv.rotation
+        val radian = rotationCard * pi/180
+        val x = 250 * sin(radian)
+        val y = -250 * cos(radian)
 
-    private fun translateCard(x: Float, y: Float, view: View, scale: Float = 1.0F) {
-        view.translationY = ViewUtils.dpToPx(x, context) * scale
-        view.translationX = ViewUtils.dpToPx(y, context) * scale
+        mcv.x = mcv.x + x
+        mcv.y = mcv.y + y
+    }
+
+    private fun translateCard(x: Float, y: Float, view: View) {
+        view.translationY = ViewUtils.dpToPx(x, context)
+        view.translationX = ViewUtils.dpToPx(y, context)
     }
 
     inner class Builder {
