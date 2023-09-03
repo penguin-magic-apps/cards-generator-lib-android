@@ -33,6 +33,12 @@ class CardsGenerator(private val context: Context) {
         cardsOnDeck: Boolean,
         rotation: Float
     ) {
+
+        val cardWidth = 178 * cardScale
+        val cardOverlap = cardWidth * 0.5
+
+        var yOffset = 0f
+
         for (i in 1..52) {
             val mcv = MaterialCardView(context)
             setupCardView(mcv, i)
@@ -41,21 +47,37 @@ class CardsGenerator(private val context: Context) {
             mcv.cardElevation = cardElevation
             mcv.rotation = randomRotation(i)
 
-            setRandomPosition(mcv, i, cardScale)
+            //setRandomPosition(mcv, i, cardScale)
 
             val imageView = AppCompatImageView(ContextThemeWrapper(context, R.style.CardBack))
             mcv.addView(imageView)
 
             for (card in cards) {
                 if (card.position == i) {
-                    calculateCardTranslationAndTranslate(mcv, i, cardScale)
+                    //calculateCardTranslationAndTranslate(mcv, i, cardScale)
                     imageView.setImageResource(card.picture)
                     setCardsElevation(cardsOnDeck, mcv)
                 }
             }
 
-            applyCardsTranslation(translationX, translationY)
-            applyCardsRotation(rotation)
+            //applyCardsTranslation(translationX, translationY)
+            //applyCardsRotation(rotation)
+
+            val layoutParams = mcv.layoutParams as ConstraintLayout.LayoutParams
+            layoutParams.marginStart = (i - 1) * cardOverlap.toInt()
+
+            mcv.x = -1350f
+
+            val yOffsetFactor = Random.nextInt(30, 32)
+            if (i <= 26) {
+                mcv.y = -yOffset * yOffsetFactor
+                yOffset++
+            } else {
+                mcv.y = (yOffset - 50) * yOffsetFactor
+                yOffset++
+            }
+
+            mcv.layoutParams = layoutParams
 
             photoLayout.clCards.addView(mcv)
         }
@@ -91,36 +113,36 @@ class CardsGenerator(private val context: Context) {
         photoLayout.clCards.rotation = rotation
     }
 
-    private fun setRandomPosition(cardView: MaterialCardView, index: Int, cardScale: Float) {
-        val pi = 3.14F
-        val rotationCard = cardView.rotation
-        val radian = rotationCard * pi/180
-        var x = (-170 + index * 2) * cos(radian)
-        var y = (150 - index) * sin(radian)
-
-        x += Random.nextDouble(1.0, 5.0).toFloat()
-        y += Random.nextDouble(1.0, 8.0).toFloat()
-
-        translateCard(x, y, cardView, cardScale)
-    }
+//    private fun setRandomPosition(cardView: MaterialCardView, index: Int, cardScale: Float) {
+//        val pi = 3.14F
+//        val rotationCard = cardView.rotation
+//        val radian = rotationCard * pi/180
+//        var x = (-170 + index * 2) * cos(radian)
+//        var y = (150 - index) * sin(radian)
+//
+//        x += Random.nextDouble(1.0, 5.0).toFloat()
+//        y += Random.nextDouble(1.0, 8.0).toFloat()
+//
+//        translateCard(x, y, cardView, cardScale)
+//    }
 
     private fun randomRotation(index: Int): Float {
-        var rotationDegrees = index.toDouble() * 5.60
+        var rotationDegrees = index.toDouble() * 1.3
         rotationDegrees -= 15.0
         rotationDegrees += Random.nextDouble(1.0, 2.2)
 
         return rotationDegrees.toFloat()
     }
 
-    private fun calculateCardTranslationAndTranslate(cardView: MaterialCardView, index: Int, cardScale: Float) {
-        val pi = 3.14F
-        val rotationCard = cardView.rotation
-        val radian = rotationCard * pi/180
-        val x = (-220 + index * 2) * cos(radian)
-        val y = (200 - index) * sin(radian)
-
-        translateCard(x, y, cardView, cardScale)
-    }
+//    private fun calculateCardTranslationAndTranslate(cardView: MaterialCardView, index: Int, cardScale: Float) {
+//        val pi = 3.14F
+//        val rotationCard = cardView.rotation
+//        val radian = rotationCard * pi/180
+//        val x = (-220 + index * 2) * cos(radian)
+//        val y = (200 - index) * sin(radian)
+//
+//        translateCard(x, y, cardView, cardScale)
+//    }
 
     private fun translateCard(x: Float, y: Float, view: View, scale: Float = 1.0F) {
         view.translationY = ViewUtils.dpToPx(x, context) * scale
