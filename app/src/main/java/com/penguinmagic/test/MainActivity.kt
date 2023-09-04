@@ -1,8 +1,6 @@
 package com.penguinmagic.test
 
 import android.os.Bundle
-import android.view.View
-import android.widget.Button
 import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
 import com.bumptech.glide.Glide
@@ -18,11 +16,10 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         val imageView = findViewById<ImageView>(R.id.ivMain)
 
-        val cardsGenerator = CardsGenerator(this).Builder()
-        cardsGenerator.setBackground(R.mipmap.background3)
-        cardsGenerator.setCustomCardsScale(2f)
-        val cards = listOf(Card(CardsSuitEnum.CLUB_8, 6), Card(CardsSuitEnum.CLUB_ACE, 25), Card(CardsSuitEnum.CLUB_7, 44))
+        val bitmap = CardsGenerator(this).Builder()
+            .setBackground(R.mipmap.background1)
+            .getCardsImageBitmap(listOf(Card(CardsSuitEnum.CLUB_8, 6), Card(CardsSuitEnum.CLUB_ACE, 25), Card(CardsSuitEnum.CLUB_7, 44)))
 
-        Glide.with(this).load(cardsGenerator.getCardsImageBitmap(cards)).into(imageView)
+        Glide.with(this).load(bitmap).into(imageView)
     }
 }

@@ -1,12 +1,13 @@
 package com.penguinmagic.cardsgeneratorlib.cardsgeneratortech
 
+import android.app.ActionBar.LayoutParams
 import android.content.Context
 import android.graphics.Bitmap
 import android.view.ContextThemeWrapper
 import android.view.LayoutInflater
 import android.view.View
-import android.view.animation.LinearInterpolator
 import android.widget.FrameLayout
+import android.widget.ImageView
 import android.widget.RelativeLayout
 import androidx.appcompat.widget.AppCompatImageView
 import androidx.constraintlayout.widget.ConstraintLayout
@@ -44,36 +45,40 @@ class CardsGenerator(private val context: Context) {
             val mcv = MaterialCardView(context)
             setupCardView(mcv, i)
             applyCardScale(mcv)
-
             mcv.cardElevation = cardElevation
-            mcv.rotation = randomRotation(i)
+            val cardRotation = randomRotation(i)
+            mcv.rotation = cardRotation
 
-            //setRandomPosition(mcv, i, cardScale)
+            val ivShadow = ImageView(context)
+            ivShadow.rotation = cardRotation
+            setupShadowImageView(ivShadow, i, mcv)
 
             val imageView = AppCompatImageView(ContextThemeWrapper(context, R.style.CardBack))
             mcv.addView(imageView)
 
-            //applyCardsTranslation(translationX, translationY)
-            //applyCardsRotation(rotation)
-
-            val layoutParams = mcv.layoutParams as ConstraintLayout.LayoutParams
-
             val x = -1350f + (i - 1) * CARD_OVERLAP.toInt()
+            val y = ((-0.00045f * (52 * (26 - x) - (26 - x).pow(2))) + (Random.nextFloat() * 15)) - 500
             mcv.x = x
-            mcv.y = ((-0.00045f * (52 * (26 - x) - (26 - x).pow(2))) + (Random.nextFloat() * 15)) -500
+            mcv.y = y
+
+            ivShadow.x = x
+            ivShadow.y = y
 
             for (card in cards) {
                 if (card.position == i) {
-                    calculateCardTranslationAndTranslate(mcv, i)
+                    calculateCardTranslationAndTranslate(mcv)
+                    calculateCardTranslationAndTranslate(ivShadow)
                     imageView.setImageResource(card.picture)
                     setCardsElevation(cardsOnDeck, mcv)
                 }
             }
 
-            mcv.layoutParams = layoutParams
-
+            photoLayout.clCards.addView(ivShadow)
             photoLayout.clCards.addView(mcv)
         }
+        photoLayout.clCards.rotation = rotation
+        photoLayout.clCards.scaleX = cardScale
+        photoLayout.clCards.scaleY = cardScale
     }
 
     private fun setupCardView(mcv: MaterialCardView, index: Int) {
@@ -83,6 +88,21 @@ class CardsGenerator(private val context: Context) {
             this.startToStart = photoLayout.clCards.id
             this.endToEnd = photoLayout.clCards.id
             this.bottomToBottom = photoLayout.clCards.id
+        }
+    }
+
+    private fun setupShadowImageView(imageView: ImageView, index: Int, mcv: MaterialCardView) {
+        imageView.setImageResource(R.mipmap.card_shadow)
+        imageView.id = index + 54
+        imageView.scaleX = 1.1f
+        imageView.scaleY = 1.1f
+        imageView.layoutParams = ConstraintLayout.LayoutParams(
+            LayoutParams.WRAP_CONTENT,
+            LayoutParams.WRAP_CONTENT).apply {
+            this.startToStart = mcv.id
+            this.topToTop = mcv.id
+            this.endToEnd = mcv.id
+            this.bottomToBottom = mcv.id
         }
     }
 
@@ -106,19 +126,6 @@ class CardsGenerator(private val context: Context) {
         photoLayout.clCards.rotation = rotation
     }
 
-//    private fun setRandomPosition(cardView: MaterialCardView, index: Int, cardScale: Float) {
-//        val pi = 3.14F
-//        val rotationCard = cardView.rotation
-//        val radian = rotationCard * pi/180
-//        var x = (-170 + index * 2) * cos(radian)
-//        var y = (150 - index) * sin(radian)
-//
-//        x += Random.nextDouble(1.0, 5.0).toFloat()
-//        y += Random.nextDouble(1.0, 8.0).toFloat()
-//
-//        translateCard(x, y, cardView, cardScale)
-//    }
-
     private fun randomRotation(index: Int): Float {
         var rotationDegrees = index.toDouble() * 1.2
         rotationDegrees -= 45.0
@@ -127,15 +134,15 @@ class CardsGenerator(private val context: Context) {
         return rotationDegrees.toFloat()
     }
 
-    private fun calculateCardTranslationAndTranslate(mcv: MaterialCardView, index: Int) {
+    private fun calculateCardTranslationAndTranslate(view: View) {
         val pi = 3.14F
-        val rotationCard = mcv.rotation
+        val rotationCard = view.rotation
         val radian = rotationCard * pi/180
         val x = 250 * sin(radian)
         val y = -250 * cos(radian)
 
-        mcv.x = mcv.x + x
-        mcv.y = mcv.y + y
+        view.x = view.x + x
+        view.y = view.y + y
     }
 
     private fun translateCard(x: Float, y: Float, view: View) {
@@ -146,28 +153,28 @@ class CardsGenerator(private val context: Context) {
     inner class Builder {
         private val params = Params()
 
-        fun setCardsElevation(elevation: Float) {
+        fun setCardsElevation(elevation: Float) = this.apply {
             this.params.cardElevation = elevation
         }
 
-        fun setCardsOnDeck(boolean: Boolean) {
+        fun setCardsOnDeck(boolean: Boolean) = this.apply {
             this.params.cardsOnDeck = boolean
         }
 
-        fun setCustomCardsScale(cardScale: Float) {
+        fun setCustomCardsScale(cardScale: Float) = this.apply {
             this.params.cardScale = cardScale
         }
 
-        fun setTranslation(translationX: Float, translationY: Float) {
+        fun setTranslation(translationX: Float, translationY: Float) = this.apply {
             this.params.translationX = translationX
             this.params.translationY = translationY
         }
 
-        fun setCardsRotation(rotation: Float) {
+        fun setCardsRotation(rotation: Float) = this.apply {
             this.params.rotation = rotation
         }
 
-        fun setBackground(background: Int?) {
+        fun setBackground(background: Int?) = this.apply {
             if (background != null) {
                 photoLayout.ivBackground.setImageResource(background)
             } else {
