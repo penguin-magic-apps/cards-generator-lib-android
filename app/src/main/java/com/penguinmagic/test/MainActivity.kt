@@ -18,8 +18,8 @@ class MainActivity : AppCompatActivity() {
 
         val bitmap = CardsGenerator(this).Builder()
             .setBackground(R.mipmap.background1)
-            .getCardsImageBitmap(listOf(Card(CardsSuitEnum.CLUB_8, 6), Card(CardsSuitEnum.CLUB_ACE, 25), Card(CardsSuitEnum.CLUB_7, 44)))
-
-        Glide.with(this).load(bitmap).into(imageView)
+            .getCardsImageBitmap(listOf(Card(CardsSuitEnum.CLUB_8, 6), Card(CardsSuitEnum.CLUB_ACE, 25), Card(CardsSuitEnum.CLUB_7, 44))) {
+                Glide.with(this).load(it).into(imageView)
+            }
     }
 }

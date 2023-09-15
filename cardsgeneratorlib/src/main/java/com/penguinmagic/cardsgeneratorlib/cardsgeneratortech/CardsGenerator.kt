@@ -17,6 +17,9 @@ import com.penguinmagic.cardsgeneratorlib.db.backgrounds.BackgroundsRepository
 import com.penguinmagic.cardsgeneratorlib.model.cards.Card
 import com.penguinmagic.cardsgeneratorlib.utils.ViewUtils
 import kotlinx.android.synthetic.main.photo_layout.view.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
 import java.io.Serializable
 import kotlin.math.cos
 import kotlin.math.pow
@@ -182,32 +185,47 @@ class CardsGenerator(private val context: Context) {
             }
         }
 
-        fun getCardsImageBitmap(cards: List<Card>): Bitmap {
-            photoLayout.rlRoot.layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT)
+        fun getCardsImageBitmap(cards: List<Card>, onBitmapCreated: (bitmap: Bitmap) -> Unit) {
+            executeAsyncAwaitCodeWithEx {
+                GlobalScope.async(Dispatchers.Main) {
+                    photoLayout.rlRoot.layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT)
 
-            addCardsOnLayout(
-                cards,
-                this.params.cardElevation,
-                this.params.cardScale,
-                this.params.translationX,
-                this.params.translationY,
-                this.params.cardsOnDeck,
-                this.params.rotation
-            )
+                    addCardsOnLayout(
+                        cards,
+                        this@Builder.params.cardElevation,
+                        this@Builder.params.cardScale,
+                        this@Builder.params.translationX,
+                        this@Builder.params.translationY,
+                        this@Builder.params.cardsOnDeck,
+                        this@Builder.params.rotation
+                    )
 
-            photoLayout.requestLayout()
+                    photoLayout.requestLayout()
 
-            val rlRoot = photoLayout.findViewById<RelativeLayout>(R.id.rlRoot)
-            rlRoot.measure(
-                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
-                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
-            )
-            rlRoot.layout(0, 0, rlRoot.measuredWidth, rlRoot.measuredHeight)
+                    val rlRoot = photoLayout.findViewById<RelativeLayout>(R.id.rlRoot)
+                    rlRoot.measure(
+                        View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
+                        View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
+                    )
+                    rlRoot.layout(0, 0, rlRoot.measuredWidth, rlRoot.measuredHeight)
 
-            val bitmapWidth = rlRoot.measuredWidth
-            val bitmapHeight = rlRoot.measuredHeight
+                    val bitmapWidth = rlRoot.measuredWidth
+                    val bitmapHeight = rlRoot.measuredHeight
 
-            return ViewUtils.createDrawableFromView(context, photoLayout, bitmapWidth, bitmapHeight)
+                    onBitmapCreated(ViewUtils.createDrawableFromView(context, photoLayout, bitmapWidth, bitmapHeight))
+                }
+            }
+        }
+
+        private fun executeAsyncAwaitCodeWithEx(handler: suspend (ex: Throwable?) -> Unit) {
+            GlobalScope.async(Dispatchers.Default) {
+                try {
+                    handler(null)
+                } catch (ex: Throwable) {
+                    ex.printStackTrace()
+                    handler(ex)
+                }
+            }
         }
 
     }
