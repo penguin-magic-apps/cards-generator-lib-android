@@ -187,33 +187,32 @@ class CardsGenerator(private val context: Context) {
 
         fun getCardsImageBitmap(cards: List<Card>, onBitmapCreated: (bitmap: Bitmap) -> Unit) {
             executeAsyncAwaitCodeWithEx {
-                GlobalScope.async(Dispatchers.Main) {
-                    photoLayout.rlRoot.layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT)
+                photoLayout.rlRoot.layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT)
 
-                    addCardsOnLayout(
-                        cards,
-                        this@Builder.params.cardElevation,
-                        this@Builder.params.cardScale,
-                        this@Builder.params.translationX,
-                        this@Builder.params.translationY,
-                        this@Builder.params.cardsOnDeck,
-                        this@Builder.params.rotation
-                    )
+                addCardsOnLayout(
+                    cards,
+                    this@Builder.params.cardElevation,
+                    this@Builder.params.cardScale,
+                    this@Builder.params.translationX,
+                    this@Builder.params.translationY,
+                    this@Builder.params.cardsOnDeck,
+                    this@Builder.params.rotation
+                )
 
-                    photoLayout.requestLayout()
+                photoLayout.requestLayout()
 
-                    val rlRoot = photoLayout.findViewById<RelativeLayout>(R.id.rlRoot)
-                    rlRoot.measure(
-                        View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
-                        View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
-                    )
-                    rlRoot.layout(0, 0, rlRoot.measuredWidth, rlRoot.measuredHeight)
+                val rlRoot = photoLayout.findViewById<RelativeLayout>(R.id.rlRoot)
+                rlRoot.measure(
+                    View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
+                    View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
+                )
+                rlRoot.layout(0, 0, rlRoot.measuredWidth, rlRoot.measuredHeight)
 
-                    val bitmapWidth = rlRoot.measuredWidth
-                    val bitmapHeight = rlRoot.measuredHeight
+                val bitmapWidth = rlRoot.measuredWidth
+                val bitmapHeight = rlRoot.measuredHeight
+                val bitmap = ViewUtils.createDrawableFromView(context, photoLayout, bitmapWidth, bitmapHeight)
 
-                    onBitmapCreated(ViewUtils.createDrawableFromView(context, photoLayout, bitmapWidth, bitmapHeight))
-                }
+                GlobalScope.async(Dispatchers.Main) { onBitmapCreated(bitmap) }
             }
         }
 
