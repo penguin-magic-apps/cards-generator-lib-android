@@ -2,6 +2,7 @@ package com.penguinmagic.cardsgeneratorlib.utils
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.Matrix
 import android.util.TypedValue
 import android.view.View
 import androidx.core.view.drawToBitmap
@@ -28,6 +29,14 @@ object ViewUtils {
         view.measure(measuredWidth, measuredHeight)
         view.layout(0, 0, view.measuredWidth, view.measuredHeight)
         return view.drawToBitmap(Bitmap.Config.ARGB_8888)
+    }
+
+
+    fun Bitmap.rotate( degrees: Float): Bitmap {
+        val matrix = Matrix()
+        matrix.postRotate(degrees)
+
+        return Bitmap.createBitmap(this, 0, 0, width, height, matrix, true)
     }
 
 }
