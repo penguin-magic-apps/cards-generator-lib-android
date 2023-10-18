@@ -20,11 +20,11 @@ class MainActivity : AppCompatActivity() {
 
         Log.d("Generation","Started")
         val bitmap = CanvasCardGen(this).Builder()
-            .setBackground(R.mipmap.background2)
-            .setCustomCardsScale(100f)
+            .setBackground(R.mipmap.background1)
+            .setCustomCardsScale(80f)
             .setCardsRotation(0f)
             .setCardsElevation(10f)
-            .getCardsImageBitmap(listOf(Card(CardsSuitEnum.CLUB_8, 6), Card(CardsSuitEnum.CLUB_ACE, 25), Card(CardsSuitEnum.CLUB_7, 44))) {
+            .getCardsImageBitmap(listOf(Card(CardsSuitEnum.CLUB_8, 1), Card(CardsSuitEnum.CLUB_ACE, 25), Card(CardsSuitEnum.CLUB_7, 52))) {
                 Log.d("Generation","Ended")
                 Glide.with(this).load(it).into(imageView)
             }

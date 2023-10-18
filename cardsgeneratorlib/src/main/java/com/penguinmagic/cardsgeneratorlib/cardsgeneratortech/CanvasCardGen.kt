@@ -1,49 +1,42 @@
 package com.penguinmagic.cardsgeneratorlib.cardsgeneratortech
 
-import android.app.ActionBar
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
-import android.graphics.Color
 import android.graphics.Paint
 import android.view.LayoutInflater
 import android.view.View
-import android.widget.FrameLayout
-import android.widget.ImageView
-import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.graphics.scale
-import com.google.android.material.card.MaterialCardView
 import com.penguinmagic.cardsgeneratorlib.R
 import com.penguinmagic.cardsgeneratorlib.db.backgrounds.BackgroundsRepository
 import com.penguinmagic.cardsgeneratorlib.model.cards.Card
-import com.penguinmagic.cardsgeneratorlib.utils.ViewUtils
 import com.penguinmagic.cardsgeneratorlib.utils.ViewUtils.rotate
-import kotlinx.android.synthetic.main.photo_layout.view.clCards
 import kotlinx.android.synthetic.main.photo_layout.view.ivBackground
-import kotlinx.android.synthetic.main.photo_layout.view.rlRoot
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import java.io.Serializable
-import kotlin.math.cos
+import kotlin.math.PI
 import kotlin.math.pow
 import kotlin.math.sin
+import kotlin.math.sqrt
 import kotlin.random.Random
+
 
 class CanvasCardGen(val context: Context) {
 
 
     companion object {
-        private var CARD_BITMAP_WIDHT = 70
-        private var CARD_BITMAP_HEIGTH = 100
+        var CARD_BITMAP_WIDTH = 70
+        var CARD_BITMAP_HEIGHT = 100
     }
 
     private val maxRotation = 50f
     private val minRotation = 0f
 
-    private val angleBetweenCards = Math.PI / 52
-    private var radius = 200
+    private val baseRadius = 0.25
+
     private val photoLayout: View by lazy {
         LayoutInflater.from(this.context).inflate(R.layout.photo_layout, null, false)
     }
@@ -60,80 +53,146 @@ class CanvasCardGen(val context: Context) {
         background: Int
     ): Bitmap {
 
-
+        var isActualCard: Boolean
         val clampedRotation = rotation.coerceIn(minRotation, maxRotation)
-        val angleOffset = clampedRotation * angleBetweenCards
-         radius +=   getPercent(radius.toFloat(), cardScale).toInt()
-         CARD_BITMAP_WIDHT += getPercent(CARD_BITMAP_WIDHT.toFloat(),cardScale).toInt()
-         CARD_BITMAP_HEIGTH += getPercent(CARD_BITMAP_HEIGTH.toFloat(),cardScale).toInt()
+        val radiusFactor = getRadiusFactor(cardScale)
+
+
+        // apply scale
+        CARD_BITMAP_WIDTH += getPercent(CARD_BITMAP_WIDTH.toFloat(), cardScale).toInt()
+        CARD_BITMAP_HEIGHT += getPercent(CARD_BITMAP_HEIGHT.toFloat(), cardScale).toInt()
+
+
+        val originalWidth = context.resources.displayMetrics.widthPixels.toFloat()
+        val originalHeight = context.resources.displayMetrics.heightPixels.toFloat()
+
+        // width adjustment based on cardScaling
+        val widthAdjustment = getPercent(originalWidth, 50f) / (cardScale / 10f)
+        val heightAdjustment = getPercent(originalHeight, 50f) / (cardScale / 10f)
+
+        val cardBoundsWidth = originalWidth - widthAdjustment
+        val cardsBoundHeight = originalHeight - heightAdjustment
+
 
         val backgroundBitmap = BitmapFactory.decodeResource(context.resources, background)
-            .copy(Bitmap.Config.ARGB_8888, true).scale(context.resources.displayMetrics.widthPixels,context.resources.displayMetrics.heightPixels)
+            .copy(Bitmap.Config.ARGB_8888, true).scale(
+                getBackgroundImageScale(originalWidth, cardBoundsWidth),
+                getBackgroundImageScale(originalHeight, cardsBoundHeight)
+            )
         val paint = Paint()
         val canvas = Canvas(backgroundBitmap)
-        var isActualCard: Boolean
 
-        val centerX = backgroundBitmap.width / 2
-        val centerY = backgroundBitmap.height / 2
+
+        val screenWidth = getPercent(cardBoundsWidth, 80f)
+        val arcCenterY = backgroundBitmap.height / 2  // Middle of the screen
+        val paddingLeft = (originalWidth - getCoordinatesAt(
+            52,
+            isActualCard = false,
+            screenWidth,
+            arcCenterY,
+            radiusFactor,
+            clampedRotation
+        ).x) / 2
 
 
         for (i in 1..52) {
             val cardRotation = randomRotation(i) + clampedRotation
-            val shadowBitmap =
-                BitmapFactory.decodeResource(context.resources, R.mipmap.card_shadow).scale(
-                    CARD_BITMAP_WIDHT, CARD_BITMAP_HEIGTH
-                )
-                    .rotate(cardRotation)
             val cardBitmap = if (cards.any { it.position == i }) {
                 isActualCard = true
                 val id = cards.first { it.position == i }.picture
                 BitmapFactory.decodeResource(context.resources, id)
-                    .scale(CARD_BITMAP_WIDHT, CARD_BITMAP_HEIGTH)
+                    .scale(CARD_BITMAP_WIDTH, CARD_BITMAP_HEIGHT)
                     .rotate(cardRotation)
             } else {
                 isActualCard = false
                 BitmapFactory.decodeResource(context.resources, R.mipmap.card_back)
-                    .scale(CARD_BITMAP_WIDHT, CARD_BITMAP_HEIGTH)
+                    .scale(CARD_BITMAP_WIDTH, CARD_BITMAP_HEIGHT)
                     .rotate(cardRotation)
             }
 
 
-
-            val angle = if (clampedRotation < 0) {
-                angleOffset + (-(i * angleBetweenCards))
-            } else {
-               -angleOffset + (-(i * angleBetweenCards))
-            }
-            val x = (centerX - radius * cos(angle)).toFloat()
-            val y = (centerY + radius * sin(angle)).toFloat()
-
-            var left = x - CARD_BITMAP_WIDHT / 2
-            var top = y - CARD_BITMAP_HEIGTH / 2
+            val coordinates = getCoordinatesAt(
+                i,
+                isActualCard,
+                screenWidth,
+                arcCenterY,
+                radiusFactor,
+                clampedRotation,
+                paddingLeft
+            )
 
 
-            if (isActualCard) {
-                if (i <= 25) {
-                    left -= (CARD_BITMAP_WIDHT / 2)
-                } else {
-                    left += (CARD_BITMAP_WIDHT / 2)
-                }
-
-                left += clampedRotation
-                top -= (CARD_BITMAP_HEIGTH / 2)
-            }
-
-            canvas.drawBitmap(cardBitmap, left, top, paint)
-
+            canvas.drawBitmap(cardBitmap, coordinates.x, coordinates.y, paint)
         }
 
         return backgroundBitmap
     }
 
 
+    fun calculateArcLength(xValues: List<Double>, yValues: List<Double>): Double {
+        var arcLength = 0.0
+        for (i in 1 until xValues.size) {
+            val dx = xValues[i] - xValues[i - 1]
+            val dy = yValues[i] - yValues[i - 1]
+            arcLength += sqrt(dx.pow(2) + dy.pow(2))
+        }
+        return arcLength
+    }
+
+
+    private fun getCoordinatesAt(
+        index: Int,
+        isActualCard: Boolean,
+        screenWidth: Float,
+        arcCenterY: Int,
+        radiusFactor: Double,
+        clampedRotation: Float,
+        padding: Float? = null
+    ): Coordinates {
+
+        val angle = (index.toDouble() / 52.toDouble()) * PI  // Angle from 0 to PI
+        var x = (screenWidth.toDouble() / (52 - 1)) * (index - 1)  // X value from 0 to screen width
+        var y = arcCenterY - (arcCenterY * radiusFactor * sin(angle))  // Y value for the arc
+
+
+
+        if (isActualCard) {
+            if (index <= 25) {
+                x -= (CARD_BITMAP_WIDTH / 2).toDouble()
+            } else {
+                x += (CARD_BITMAP_WIDTH / 2).toDouble()
+            }
+
+            x += clampedRotation.toDouble()
+            y -= (CARD_BITMAP_HEIGHT / 2).toDouble()
+        }
+
+        padding?.let {
+            x += it
+        }
+
+        return Coordinates(x.toFloat(), y.toFloat())
+    }
+
+
+    private fun getRadiusFactor(cardScale: Float): Double {
+        var radius = baseRadius
+
+        var decimal = -((cardScale / 10f) - 10)
+
+        while (decimal > 0) {
+            radius -= 0.01
+            decimal -= 1
+        }
+
+        return radius
+    }
+
+    private fun getBackgroundImageScale(originalValue: Float, cardBoundValue: Float): Int {
+        return (originalValue + getPercent(cardBoundValue, 10f)).toInt()
+    }
 
     private fun getPercent(value: Float, scale: Float) = (value / 100f) * scale;
-
-
 
 
     private fun randomRotation(index: Int): Float {
@@ -144,6 +203,8 @@ class CanvasCardGen(val context: Context) {
         return rotationDegrees.toFloat()
     }
 
+
+    data class Coordinates(var x: Float, val y: Float)
 
     inner class Builder {
         private val params = Params()
