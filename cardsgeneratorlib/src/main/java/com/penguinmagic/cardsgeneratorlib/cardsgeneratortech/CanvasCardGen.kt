@@ -28,9 +28,13 @@ class CanvasCardGen(val context: Context) {
 
 
     companion object {
-        var CARD_BITMAP_WIDTH = 70
-        var CARD_BITMAP_HEIGHT = 100
+        private const val CARD_BITMAP_BASE_WIDTH = 70
+        private const val  CARD_BITMAP_BASE_HEIGHT = 100
     }
+
+
+    private var CARD_BITMAP_WIDTH = CARD_BITMAP_BASE_WIDTH
+    private var CARD_BITMAP_HEIGHT = CARD_BITMAP_BASE_HEIGHT
 
     private val maxRotation = 50f
     private val minRotation = 0f
