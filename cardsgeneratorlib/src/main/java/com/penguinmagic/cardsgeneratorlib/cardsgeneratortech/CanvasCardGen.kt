@@ -54,8 +54,10 @@ class CanvasCardGen(val context: Context) {
         translationY: Float,
         cardsOnDeck: Boolean,
         rotation: Float,
-        background: Int
+        background: Bitmap
     ): Bitmap {
+
+
 
         var isActualCard: Boolean
         val clampedRotation = rotation.coerceIn(minRotation, maxRotation)
@@ -78,7 +80,7 @@ class CanvasCardGen(val context: Context) {
         val cardsBoundHeight = originalHeight - heightAdjustment
 
 
-        val backgroundBitmap = BitmapFactory.decodeResource(context.resources, background)
+        val backgroundBitmap = background
             .copy(Bitmap.Config.ARGB_8888, true).scale(
                 getBackgroundImageScale(originalWidth, cardBoundsWidth),
                 getBackgroundImageScale(originalHeight, cardsBoundHeight)
@@ -234,15 +236,9 @@ class CanvasCardGen(val context: Context) {
             this.params.rotation = rotation
         }
 
-        fun setBackground(background: Int?) = this.apply {
-            if (background != null) {
+        fun setBackground(background: Bitmap) = this.apply {
                 params.background = background
-                photoLayout.ivBackground.setImageResource(background)
-            } else {
-                val randomBackground = BackgroundsRepository.getRandomBackground()
-                params.background = randomBackground
-                photoLayout.ivBackground.setImageResource(randomBackground)
-            }
+                photoLayout.ivBackground.setImageBitmap(background)
         }
 
         fun getCardsImageBitmap(cards: List<Card>, onBitmapCreated: (bitmap: Bitmap) -> Unit) {
@@ -260,6 +256,9 @@ class CanvasCardGen(val context: Context) {
                 )
 
                 GlobalScope.async(Dispatchers.Main) { onBitmapCreated(bitmap) }
+
+
+
             }
         }
 
@@ -283,6 +282,6 @@ class CanvasCardGen(val context: Context) {
         var translationX: Float = -70F
         var translationY: Float = 350F
         var rotation: Float = 0F
-        var background: Int = R.mipmap.background1
+        lateinit var background: Bitmap
     }
 }

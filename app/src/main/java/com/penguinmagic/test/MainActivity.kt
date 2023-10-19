@@ -1,5 +1,6 @@
 package com.penguinmagic.test
 
+import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.util.Log
 import android.widget.ImageView
@@ -20,7 +21,7 @@ class MainActivity : AppCompatActivity() {
 
         Log.d("Generation","Started")
         val bitmap = CanvasCardGen(this).Builder()
-            .setBackground(R.mipmap.background1)
+           // .setBackground(BitmapFactory.decodeResource()R.mipmap.background1)
             .setCustomCardsScale(80f)
             .setCardsRotation(0f)
             .setCardsElevation(10f)
