@@ -2,10 +2,12 @@ package com.penguinmagic.cardsgeneratorlib.utils
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Matrix
 import android.util.TypedValue
 import android.view.View
 import androidx.core.view.drawToBitmap
+import java.io.File
 
 object ViewUtils {
 
@@ -38,5 +40,10 @@ object ViewUtils {
 
         return Bitmap.createBitmap(this, 0, 0, width, height, matrix, true)
     }
+
+    val File.bitmap: Bitmap
+        get() = ExifUtil.rotateBitmap(this, BitmapFactory.decodeFile(this.path, BitmapFactory.Options().apply {
+            inPreferredConfig = Bitmap.Config.ARGB_8888
+        }))
 
 }

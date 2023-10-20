@@ -9,13 +9,15 @@ import android.view.LayoutInflater
 import android.view.View
 import androidx.core.graphics.scale
 import com.penguinmagic.cardsgeneratorlib.R
-import com.penguinmagic.cardsgeneratorlib.db.backgrounds.BackgroundsRepository
+
 import com.penguinmagic.cardsgeneratorlib.model.cards.Card
+import com.penguinmagic.cardsgeneratorlib.utils.ViewUtils.bitmap
 import com.penguinmagic.cardsgeneratorlib.utils.ViewUtils.rotate
 import kotlinx.android.synthetic.main.photo_layout.view.ivBackground
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
+import java.io.File
 import java.io.Serializable
 import kotlin.math.PI
 import kotlin.math.pow
@@ -32,6 +34,9 @@ class CanvasCardGen(val context: Context) {
         private const val  CARD_BITMAP_BASE_HEIGHT = 100
     }
 
+    private val photoLayout: View by lazy {
+        LayoutInflater.from(this.context).inflate(R.layout.photo_layout, null, false)
+    }
 
     private var CARD_BITMAP_WIDTH = CARD_BITMAP_BASE_WIDTH
     private var CARD_BITMAP_HEIGHT = CARD_BITMAP_BASE_HEIGHT
@@ -41,20 +46,15 @@ class CanvasCardGen(val context: Context) {
 
     private val baseRadius = 0.25
 
-    private val photoLayout: View by lazy {
-        LayoutInflater.from(this.context).inflate(R.layout.photo_layout, null, false)
-    }
 
 
     private fun addCardsOnLayout(
         cards: List<Card>,
-        cardElevation: Float,
         cardScale: Float,
-        translationX: Float,
-        translationY: Float,
-        cardsOnDeck: Boolean,
         rotation: Float,
-        background: Bitmap
+        backgroundPos: Int,
+        preLoadedBackgrounds : ArrayList<Int>,
+        customBackgrounds: ArrayList<String>
     ): Bitmap {
 
 
@@ -80,11 +80,13 @@ class CanvasCardGen(val context: Context) {
         val cardsBoundHeight = originalHeight - heightAdjustment
 
 
-        val backgroundBitmap = background
+        val backgroundBitmap = getBackgroundBitmap(backgroundPos,preLoadedBackgrounds,customBackgrounds)
             .copy(Bitmap.Config.ARGB_8888, true).scale(
                 getBackgroundImageScale(originalWidth, cardBoundsWidth),
                 getBackgroundImageScale(originalHeight, cardsBoundHeight)
             )
+
+
         val paint = Paint()
         val canvas = Canvas(backgroundBitmap)
 
@@ -145,6 +147,14 @@ class CanvasCardGen(val context: Context) {
         return arcLength
     }
 
+
+    fun getBackgroundBitmap(backgroundPos: Int, preLoadedBackgrounds: ArrayList<Int>, customBackgrounds : ArrayList<String>): Bitmap{
+        return if(backgroundPos < preLoadedBackgrounds.size ){
+           BitmapFactory.decodeResource(context.resources, preLoadedBackgrounds[backgroundPos])
+        }else{
+            File(customBackgrounds[backgroundPos - preLoadedBackgrounds.size]).bitmap
+        }
+    }
 
     private fun getCoordinatesAt(
         index: Int,
@@ -215,30 +225,27 @@ class CanvasCardGen(val context: Context) {
     inner class Builder {
         private val params = Params()
 
-        fun setCardsElevation(elevation: Float) = this.apply {
-            this.params.cardElevation = elevation
-        }
-
-        fun setCardsOnDeck(boolean: Boolean) = this.apply {
-            this.params.cardsOnDeck = boolean
-        }
 
         fun setCustomCardsScale(cardScale: Float) = this.apply {
             this.params.cardScale = cardScale
         }
 
-        fun setTranslation(translationX: Float, translationY: Float) = this.apply {
-            this.params.translationX = translationX
-            this.params.translationY = translationY
-        }
 
         fun setCardsRotation(rotation: Float) = this.apply {
             this.params.rotation = rotation
         }
 
-        fun setBackground(background: Bitmap) = this.apply {
-                params.background = background
-                photoLayout.ivBackground.setImageBitmap(background)
+        fun setBackgroundPos(background: Int ) = this.apply {
+                params.backgroundPos = background
+        }
+
+        fun setPreLoadedBackground(preLoadedBackgrounds: ArrayList<Int>)= this.apply {
+            params.preLoadedBackGround= preLoadedBackgrounds
+
+        }
+
+        fun setCustomBackground(customBackgrounds: ArrayList<String>)= this.apply {
+            params.customBackgrounds = customBackgrounds
         }
 
         fun getCardsImageBitmap(cards: List<Card>, onBitmapCreated: (bitmap: Bitmap) -> Unit) {
@@ -246,13 +253,11 @@ class CanvasCardGen(val context: Context) {
 
                 val bitmap = addCardsOnLayout(
                     cards,
-                    this@Builder.params.cardElevation,
-                    this@Builder.params.cardScale,
-                    this@Builder.params.translationX,
-                    this@Builder.params.translationY,
-                    this@Builder.params.cardsOnDeck,
-                    this@Builder.params.rotation,
-                    background = params.background
+                    cardScale = params.cardScale,
+                    rotation= params.rotation,
+                    backgroundPos = params.backgroundPos,
+                    customBackgrounds = params.customBackgrounds,
+                    preLoadedBackgrounds = params.preLoadedBackGround
                 )
 
                 GlobalScope.async(Dispatchers.Main) { onBitmapCreated(bitmap) }
@@ -276,12 +281,11 @@ class CanvasCardGen(val context: Context) {
     }
 
     private class Params : Serializable {
-        var cardsOnDeck: Boolean = false
         var cardElevation: Float = 0F
         var cardScale: Float = 1F
-        var translationX: Float = -70F
-        var translationY: Float = 350F
         var rotation: Float = 0F
-        lateinit var background: Bitmap
+        var backgroundPos: Int = 0
+        var customBackgrounds = ArrayList<String>()
+        var preLoadedBackGround = ArrayList<Int>()
     }
 }
