@@ -5,7 +5,7 @@ plugins {
     id 'maven-publish'
 }
 
-def VERSION_NAME = "1.2.3"
+def VERSION_NAME = "1.2.4"
 
 group = 'com.penguin-magic-apps.cards-generator-lib-android'
 version = VERSION_NAME
@@ -17,7 +17,7 @@ android {
     defaultConfig {
         minSdk 21
         targetSdk 33
-        versionCode 10
+        versionCode 11
         versionName VERSION_NAME
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
